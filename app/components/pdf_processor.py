@@ -1,6 +1,6 @@
 from typing import List, Dict
 import re
-import fitz  # PyMuPDF
+import pymupdf
 from hazm import Normalizer, SentenceTokenizer
 
 class PDFProcessor:
@@ -9,7 +9,7 @@ class PDFProcessor:
         self.sent_tokenizer = SentenceTokenizer()
 
     def extract_text(self, pdf_path: str) -> str:
-        doc = fitz.open(pdf_path)
+        doc = pymupdf.open(pdf_path)
         texts = []
         for page in doc:
             texts.append(page.get_text())
