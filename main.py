@@ -7,7 +7,7 @@ from config import settings
 from document_processor import DocumentProcessor
 from rag_engine import RAGEngine
 
-app = FastAPI(title=settings.app_name, version=settings.app_version)
+app = FastAPI(title=settings.app_name)
 processor = DocumentProcessor()
 rag = RAGEngine()
 startup_time = time.time()
