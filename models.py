@@ -1,0 +1,123 @@
+from pydantic import BaseModel, Field, validator
+from typing import Optional, List, Dict, Any, Literal
+from datetime import datetime
+from enum import Enum
+
+class ContentType(str, Enum):
+    """Content type enumeration"""
+    TEXT = "text"
+    TABLE = "table"
+    MIXED = "mixed"
+
+class DocumentType(str, Enum):
+    """Document type enumeration"""
+    PDF = "pdf"
+    DOCX = "docx"
+    XLSX = "xlsx"
+
+class LLMProvider(str, Enum):
+    """LLM provider enumeration"""
+    QWEN = "qwen"
+    OPENAI = "openai"
+
+class DocumentUploadRequest(BaseModel):
+    """Request model for document upload"""
+    file_name: str = Field(..., description="Name of the uploaded file")
+    file_content: bytes = Field(..., description="Binary content of the file")
+    metadata: Optional[Dict[str, Any]] = Field(default={}, description="Additional metadata")
+    
+    @validator('file_name')
+    def validate_file_name(cls, v):
+        allowed_extensions = ['.pdf', '.docx', '.xlsx']
+        if not any(v.lower().endswith(ext) for ext in allowed_extensions):
+            raise ValueError(f"File type not supported. Allowed: {allowed_extensions}")
+        return v
+
+class DocumentMetadata(BaseModel):
+    """Document metadata model"""
+    doc_id: str = Field(..., description="Unique document identifier")
+    file_name: str = Field(..., description="Original file name")
+    doc_type: DocumentType = Field(..., description="Document type")
+    upload_time: datetime = Field(default_factory=datetime.now, description="Upload timestamp")
+    page_count: int = Field(default=0, description="Number of pages")
+    chunk_count: int = Field(default=0, description="Number of chunks created")
+    table_count: int = Field(default=0, description="Number of tables extracted")
+    size_bytes: int = Field(default=0, description="File size in bytes")
+    metadata: Dict[str, Any] = Field(default={}, description="Additional metadata")
+
+class DocumentResponse(BaseModel):
+    """Response model for document operations"""
+    success: bool = Field(..., description="Operation success status")
+    message: str = Field(..., description="Response message")
+    doc_id: Optional[str] = Field(None, description="Document ID if applicable")
+    metadata: Optional[DocumentMetadata] = Field(None, description="Document metadata")
+
+class DocumentListResponse(BaseModel):
+    """Response model for listing documents"""
+    total: int = Field(..., description="Total number of documents")
+    documents: List[DocumentMetadata] = Field(..., description="List of document metadata")
+
+class QueryRequest(BaseModel):
+    """Request model for querying documents"""
+    question: str = Field(..., min_length=1, max_length=1000, description="User question")
+    doc_ids: Optional[List[str]] = Field(None, description="Specific document IDs to search")
+    llm_provider: Optional[LLMProvider] = Field(LLMProvider.QWEN, description="LLM provider to use")
+    top_k: Optional[int] = Field(5, ge=1, le=20, description="Number of relevant chunks to retrieve")
+    include_tables: bool = Field(True, description="Include table content in search")
+    rerank: bool = Field(True, description="Enable reranking of results")
+    temperature: Optional[float] = Field(0.7, ge=0, le=1, description="LLM temperature")
+    max_tokens: Optional[int] = Field(2048, ge=100, le=4096, description="Maximum tokens in response")
+
+class TableQueryRequest(QueryRequest):
+    """Request model for table-specific queries"""
+    table_only: bool = Field(True, description="Search only in table content")
+    return_markdown: bool = Field(True, description="Return tables in markdown format")
+
+class ChunkMetadata(BaseModel):
+    """Metadata for document chunks"""
+    chunk_id: str = Field(..., description="Unique chunk identifier")
+    doc_id: str = Field(..., description="Parent document ID")
+    page_number: int = Field(..., description="Page number in document")
+    content_type: ContentType = Field(..., description="Type of content")
+    confidence_score: float = Field(0.0, description="Retrieval confidence score")
+    text_preview: str = Field(..., description="Preview of chunk content")
+
+class QueryResponse(BaseModel):
+    """Response model for queries"""
+    success: bool = Field(..., description="Query success status")
+    question: str = Field(..., description="Original question")
+    answer: str = Field(..., description="Generated answer")
+    sources: List[ChunkMetadata] = Field(..., description="Source chunks used")
+    llm_provider: LLMProvider = Field(..., description="LLM provider used")
+    processing_time: float = Field(..., description="Query processing time in seconds")
+    metadata: Dict[str, Any] = Field(default={}, description="Additional metadata")
+
+class HealthCheckResponse(BaseModel):
+    """Response model for health check"""
+    status: Literal["healthy", "degraded", "unhealthy"] = Field(..., description="System health status")
+    version: str = Field(..., description="Application version")
+    uptime: float = Field(..., description="Uptime in seconds")
+    components: Dict[str, bool] = Field(..., description="Component health status")
+    timestamp: datetime = Field(default_factory=datetime.now, description="Check timestamp")
+
+class ReindexRequest(BaseModel):
+    """Request model for reindexing"""
+    doc_ids: Optional[List[str]] = Field(None, description="Specific documents to reindex")
+    force: bool = Field(False, description="Force reindex even if up to date")
+    optimize: bool = Field(True, description="Optimize index after reindexing")
+
+class ReindexResponse(BaseModel):
+    """Response model for reindexing"""
+    success: bool = Field(..., description="Reindex success status")
+    message: str = Field(..., description="Status message")
+    documents_processed: int = Field(..., description="Number of documents processed")
+    chunks_indexed: int = Field(..., description="Number of chunks indexed")
+    processing_time: float = Field(..., description="Processing time in seconds")
+
+class ErrorResponse(BaseModel):
+    """Standard error response model"""
+    success: bool = Field(False, description="Always false for errors")
+    error: str = Field(..., description="Error type")
+    message: str = Field(..., description="Error message")
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    timestamp: datetime = Field(default_factory=datetime.now, description="Error timestamp")

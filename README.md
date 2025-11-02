@@ -1,43 +1,86 @@
-# Persian RAG with Reranked Search, FastAPI
-
-A modular Retrieval Augmented Generation system focused on Persian PDFs with semantic search, cross-encoder reranking, information extraction, and FastAPI endpoints.
+# Production RAG with FastAPI, LangChain, FAISS, Qwen, and Table Awareness
 
 ## Features
-- Persian PDF text extraction using PyMuPDF, Hazm normalization and sentence tokenization.
-- Chunking with overlap and sentence boundary awareness.
-- Embeddings via multilingual Sentence Transformers, default is `distiluse-base-multilingual-cased`.
-- Vector store using FAISS, persisted to disk with sidecar JSON metadata.
-- Two-stage retrieval, bi-encoder semantic search then cross-encoder reranking with `cross-encoder/ms-marco-MiniLM-L-6-v2`.
-- Pattern based information extraction for figures, dates, currency, and summary generation.
-- FastAPI endpoints for upload, query, extraction results, and health.
-- Model and component interfaces to allow swapping models or stores.
+- Upload and index PDF, DOCX, and Excel. Text and tables are extracted and preserved.
+- Vector search with FAISS, sentence-transformers embeddings.
+- Cross encoder reranker for better relevance.
+- Qwen integration, local HuggingFace or DashScope API.
+- Table aware prompts and table only querying.
+- Citations with filename and page numbers.
+- Async ready FastAPI with rate limiting and API key check.
+- Health endpoint, reindex endpoint, robust logging.
 
-## Quickstart
-1. Create a virtualenv and install:
+## Quick start
+
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
+export API_KEY=dev-secret-key
+python run.py
 ```
 
-2. Run the API:
-```bash
-uvicorn app.main:app --reload --port 8000
+Set custom config via environment variables:
+```
+export API_KEY="your-prod-key"
+export LLM_BACKEND="local"            # or api
+export QWEN_MODEL_NAME="Qwen/Qwen2.5-7B-Instruct"
+export CHUNK_SIZE=1200
+export CHUNK_OVERLAP=150
+export RETRIEVAL_K=12
+export RERANK_K=6
+export EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
+export RERANKER_MODEL="cross-encoder/ms-marco-MiniLM-L-6-v2"
+export RATE_LIMIT="100/minute"
 ```
 
-3. Open the docs at:
+For DashScope:
 ```
-http://127.0.0.1:8000/docs
+export LLM_BACKEND=api
+export DASHSCOPE_API_KEY=sk-...
 ```
 
-## Folders
-- `app/components` core classes, PDF processing, embeddings, search, extraction, QA engine.
-- `app/storage` persistence helpers for FAISS index and metadata JSON.
-- `data/uploads` user uploaded PDFs.
-- `data/index` FAISS index files and metadata.
-- `data/extracted` extracted info JSON per document.
+## API
+
+Header `x-api-key: <your key>` is required on protected endpoints.
+
+### Health
+- `GET /health`
+
+### Upload
+- `POST /documents/upload`
+  - multipart form, `files` is a list of files
+  - supports pdf, docx, xlsx
+
+### List docs
+- `GET /documents`
+
+### Delete doc metadata
+- `DELETE /documents/{doc_id}`
+  - Removes metadata only. Call `/reindex` to rebuild FAISS without the document.
+
+### Reindex
+- `POST /reindex`
+  - Rebuilds FAISS from files in `data/uploads`
+
+### Query
+- `POST /query`
+```json
+{
+  "query": "What is the pressure drop in the reactor table",
+  "top_k": 5,
+  "table_only": false,
+  "filters": {"doc_id":"<uuid>"},
+  "generation_params": {"temperature": 0.2, "max_new_tokens": 512}
+}
+```
+- Returns `answer` and `sources` with filename and page.
+
+### Query tables only
+- `POST /query/tables`
+  - Same body as `/query` but searches only table chunks.
 
 ## Notes
-- This repo assumes CPU usage. If CUDA is available, SentenceTransformers and Torch will use it automatically.
-- Persian Right To Left is handled at the text level. The API returns UTF-8 JSON. Clients can render RTL.
-- For production, consider a SQLite or Postgres store for metadata, and S3 like storage for uploads.
+- Table extraction uses pdfplumber, python-docx, and pandas.
+- FAISS delete by metadata is limited. This template rebuilds on `/reindex`.
+- For GPU, install torch with CUDA. The Qwen wrapper selects device automatically unless `qwen_device=cpu`.
