@@ -29,7 +29,7 @@ print(resp.json())
 ## Run the Server
 bash
 pip install -r requirements.txt
-python run.py
+python main.py
 
 
 ---
