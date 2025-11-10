@@ -7,6 +7,7 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 from langchain.schema import Document
 from config import settings
 import logging
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +15,16 @@ class VectorStore:
     """FAISS-based vector store with reranking support"""
 
     def __init__(self):
-        self.embedding_model = SentenceTransformer(settings.embedding_model)
-        self.dimension = self.embedding_model.get_sentence_embedding_dimension()
+
+        if settings.llm_provider == 'openai':
+            self.openai_client = OpenAI(api_key=settings.openai_api_key)
+            self.embedding_model = None
+            self.openai_embedding_model = settings.openai_embedding_model
+            self.dimension = 1536
+        else:
+            self.embedding_model = SentenceTransformer(settings.embedding_model)
+            self.dimension = self.embedding_model.get_sentence_embedding_dimension()
+            self.openai_client = None
 
         # Initialize reranker if enabled
         self.reranker = None
@@ -30,6 +39,43 @@ class VectorStore:
         # Load existing index if available
         self.load()
 
+    def _get_openai_embeddings(self, texts: List[str]) -> np.ndarray:
+        """"get embeddings using OpenAI API key"""
+        texts = [text.replace('\n', ' ') for text in texts]
+        batch_size = 2048
+        all_embeddings = []
+
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+
+            try:
+                response = self.openai_client.embeddings.create(
+                    input=batch,
+                    model=self.openai_embedding_model
+                )
+
+                batch_embeddings = [item.embedding for item in response.data]
+                all_embeddings.extend(batch_embeddings)
+            
+            except Exception as e:
+                logger.error(f"Error getting OpenAI embeddings: {e}")
+                raise
+        
+        return np.array(all_embeddings, dtype=np.float32)
+    
+    def _get_embeddings(self, texts: List[str]):
+        """"Get emgeddings using the defined provider"""
+        if settings.llm_provider == 'openai':
+            logger.info(f'Generating OpenAI embeddings for {len(texts)} texts.')
+            return self._get_openai_embeddings(texts)
+        else:
+            logger.info(f'Generating local embeddings for {len(texts)} texst.')
+            return self.embedding_model.encode(
+                texts,
+                show_progress_bar=True,
+                convert_to_numpy=True
+            ).astype(np.float32)
+
     def add_documents(self, documents: List[Document]):
         """Add documents to the vector store"""
         if not documents:
@@ -40,12 +86,8 @@ class VectorStore:
         metadatas = [doc.metadata for doc in documents]
 
         # Generate embeddings
-        logger.info(f"Generating embeddings for {len(texts)} documents...")
-        embeddings = self.embedding_model.encode(
-            texts,
-            show_progress_bar=True,
-            convert_to_numpy=True
-        )
+        logger.info(f"Generating embeddings for {len(texts)} documents.")
+        embeddings = self._get_embeddings(texts)
 
         # Add to FAISS index
         self.index.add(embeddings.astype(np.float32))
@@ -54,7 +96,7 @@ class VectorStore:
 
         # Save the index
         self.save()
-        logger.info(f"Added {len(documents)} documents to vector store")
+        logger.info(f"Added {len(documents)} documents to vector store.")
 
     def search(self, query: str, top_k: int = 5, filter_metadata: Optional[Dict] = None) -> List[Dict]:
         """Search for similar documents"""
@@ -63,7 +105,7 @@ class VectorStore:
             return []
 
         # Generate query embedding
-        query_embedding = self.embedding_model.encode([query], convert_to_numpy=True)
+        query_embedding = self._get_embeddings([query])
 
         # Search in FAISS
         k = min(top_k * 2 if self.reranker else top_k, self.index.ntotal)

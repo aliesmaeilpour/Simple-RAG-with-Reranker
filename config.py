@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     vector_dimension: int = Field(default=384, env="VECTOR_DIMENSION")
     
     # LLM Configuration
-    llm_provider: str = Field(default="qwen", env="LLM_PROVIDER")  # "qwen" or "openai"
+    llm_provider: str = Field(default="openai", env="LLM_PROVIDER")  # "qwen" or "openai"
     
     # Qwen Configuration
     qwen_model_name: str = Field(default="Qwen/Qwen2-7B-Instruct", env="QWEN_MODEL")

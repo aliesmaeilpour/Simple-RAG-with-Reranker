@@ -61,7 +61,7 @@ class QueryRequest(BaseModel):
     """Request model for querying documents"""
     question: str = Field(..., min_length=1, max_length=1000, description="User question")
     doc_ids: Optional[List[str]] = Field(None, description="Specific document IDs to search")
-    llm_provider: Optional[LLMProvider] = Field(LLMProvider.QWEN, description="LLM provider to use")
+    llm_provider: Optional[LLMProvider] = Field(LLMProvider.OPENAI, description="LLM provider to use")
     top_k: Optional[int] = Field(5, ge=1, le=20, description="Number of relevant chunks to retrieve")
     include_tables: bool = Field(True, description="Include table content in search")
     rerank: bool = Field(True, description="Enable reranking of results")
