@@ -164,8 +164,8 @@ class VectorStore:
 
     def load(self):
         """Load the vector store from disk"""
-        index_path = os.path.join(self.config.vector_store_path, "faiss.index")
-        meta_path = os.path.join(self.config.vector_store_path, "metadata.pkl")
+        index_path = os.path.join(settings.vector_store_path, "faiss.index")
+        meta_path = os.path.join(settings.vector_store_path, "metadata.pkl")
 
         if os.path.exists(index_path) and os.path.exists(meta_path):
             self.index = faiss.read_index(index_path)
