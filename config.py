@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     llm_provider: str = Field(default="openai", env="LLM_PROVIDER")  # "qwen" or "openai"
     
     # Qwen Configuration
-    qwen_model_name: str = Field(default="Qwen/Qwen3-4B-Thinking-2507", env="QWEN_MODEL")
+    qwen_model_name: str = Field(default="Qwen/Qwen3-4B-Instruct-2507", env="QWEN_MODEL")
     qwen_max_tokens: int = Field(default=2048, env="QWEN_MAX_TOKENS")
     qwen_temperature: float = Field(default=0.7, env="QWEN_TEMPERATURE")
     qwen_device: str = Field(default="auto", env="QWEN_DEVICE")  # "cpu", "cuda", or "auto"
