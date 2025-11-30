@@ -44,7 +44,7 @@ class DocumentProcessor:
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         return f"{timestamp}_{content_hash}"
     
-    def process_file(self, file_path: str) -> Tuple[List[Document], Dict[str, Any]]:
+    async def process_file(self, file_path: str) -> Tuple[List[Document], Dict[str, Any]]:
         """
         Process a file from path
         
