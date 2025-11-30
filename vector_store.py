@@ -143,7 +143,7 @@ class VectorStore:
 
             # Sort by rerank score and take top k
             results = sorted(results, key=lambda x: x["rerank_score"], reverse=True)
-            results = results[:self.config.rerank_top_k]
+            results = results[:settings.rerank_top_k]
 
         return results[:top_k]
 
