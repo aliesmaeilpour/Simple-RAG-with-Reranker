@@ -8,6 +8,7 @@ from document_processor import DocumentProcessor
 from rag_engine import RAGEngine
 import os
 import uuid
+from pathlib import Path
 
 
 app = FastAPI(title=settings.app_name)
