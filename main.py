@@ -24,7 +24,7 @@ async def health_check():
 @app.post("/documents/upload", response_model=DocumentResponse)
 async def upload_document(file: UploadFile = File(...)):
     content = await file.read()
-    chunks, meta = await processor.process_document(content, file.filename)
+    chunks, meta = await processor.process_file(content, file.filename)
     rag.vector_service.add_documents(chunks)
     return DocumentResponse(success=True, message="Document uploaded", doc_id=meta.doc_id, metadata=meta)
 
