@@ -6,11 +6,15 @@ from models import *
 from config import settings
 from document_processor import DocumentProcessor
 from rag_engine import RAGEngine
+import os
+import uuid
+
 
 app = FastAPI(title=settings.app_name)
 processor = DocumentProcessor()
 rag = RAGEngine()
 startup_time = time.time()
+UPLOAD_DIR = Path("uploads")
 
 @app.get("/health")
 async def health_check():
@@ -24,7 +28,15 @@ async def health_check():
 @app.post("/documents/upload", response_model=DocumentResponse)
 async def upload_document(file: UploadFile = File(...)):
     content = await file.read()
-    chunks, meta = await processor.process_file(content, file.filename)
+    file_extension = os.path.splitext(file.filename)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = UPLOAD_DIR / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    chunks, meta = await processor.process_file(file_path)
     rag.vector_service.add_documents(chunks)
     return DocumentResponse(success=True, message="Document uploaded", doc_id=meta.doc_id, metadata=meta)
 

@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     rerank_top_k: int = Field(default=5, env="RERANK_TOP_K")
     
     # Search Configuration
-    search_k: int = Field(default=10, env="SEARCH_K")
+    search_k: int = Field(default=5, env="SEARCH_K")
     search_type: str = Field(default="similarity", env="SEARCH_TYPE")  # "similarity" or "mmr"
     
     # Logging Configuration
