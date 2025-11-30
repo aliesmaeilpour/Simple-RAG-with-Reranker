@@ -5,7 +5,7 @@ from langchain_core.documents import Document
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from openai import OpenAI
 from config import settings
-from vector_store import VectorStoreService
+from vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class RAGEngine:
     """Main RAG pipeline engine for Qwen and OpenAI models"""
 
     def __init__(self):
-        self.vector_service = VectorStoreService()
+        self.vector_service = VectorStore()
         if settings.llm_provider == "openai" and settings.openai_api_key:
             self.openai_client = OpenAI(api_key=settings.openai_api_key)
         else:
