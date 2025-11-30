@@ -45,7 +45,10 @@ class Settings(BaseSettings):
     qwen_device: str = Field(default="auto", env="QWEN_DEVICE")  # "cpu", "cuda", or "auto"
     
     # OpenAI Configuration
-    openai_api_key: Optional[str] = Field(default="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", env="OPENAI_API_KEY")
+    openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
     openai_model: str = Field(default="gpt-5-mini", env="OPENAI_MODEL")
     openai_max_tokens: int = Field(default=2048, env="OPENAI_MAX_TOKENS")
     openai_temperature: float = Field(default=0.7, env="OPENAI_TEMPERATURE")
