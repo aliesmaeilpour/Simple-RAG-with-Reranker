@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     openai_embedding_model: str = Field(default="text-embedding-3-small", env="OPENAI_EMBEDDING_MODEL")
     
     # Reranker Configuration
-    rerank_enabled: bool = Field(default=True, env="RERANK_ENABLED")
+    use_reranking: bool = Field(default=True, env="RERANK_ENABLED")
     rerank_model: str = Field(
         default="BAAI/bge-reranker-v2-m3",
         env="RERANK_MODEL"
