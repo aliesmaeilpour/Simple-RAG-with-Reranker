@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     
     # Qwen Configuration
     qwen_model_name: str = Field(default="Qwen/Qwen3-4B-Instruct-2507", env="QWEN_MODEL")
-    qwen_max_tokens: int = Field(default=2048, env="QWEN_MAX_TOKENS")
+    qwen_max_tokens: int = Field(default=512, env="QWEN_MAX_TOKENS")
     qwen_temperature: float = Field(default=0.7, env="QWEN_TEMPERATURE")
     qwen_device: str = Field(default="auto", env="QWEN_DEVICE")  # "cpu", "cuda", or "auto"
     
@@ -52,8 +52,8 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
     openai_api_key: str = ""
-    openai_model: str = Field(default="gpt-5-mini", env="OPENAI_MODEL")
-    openai_max_tokens: int = Field(default=2048, env="OPENAI_MAX_TOKENS")
+    openai_model: str = Field(default="gpt-5-nano", env="OPENAI_MODEL")
+    openai_max_tokens: int = Field(default=512, env="OPENAI_MAX_TOKENS")
     openai_temperature: float = Field(default=0.7, env="OPENAI_TEMPERATURE")
     openai_embedding_model: str = Field(default="text-embedding-3-small", env="OPENAI_EMBEDDING_MODEL")
     
