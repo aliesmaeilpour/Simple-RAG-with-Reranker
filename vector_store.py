@@ -149,8 +149,8 @@ class VectorStore:
 
     def save(self):
         """Save the vector store to disk"""
-        index_path = os.path.join(self.config.vector_store_path, "faiss.index")
-        meta_path = os.path.join(self.config.vector_store_path, "metadata.pkl")
+        index_path = os.path.join(settings.vector_store_path, "faiss.index")
+        meta_path = os.path.join(settings.vector_store_path, "metadata.pkl")
 
         faiss.write_index(self.index, index_path)
 
