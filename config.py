@@ -80,11 +80,6 @@ class Settings(BaseSettings):
     )
     rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
     rate_limit_period: int = Field(default=60, env="RATE_LIMIT_PERIOD")  # seconds
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
 
 # Global settings instance
 settings = Settings()
