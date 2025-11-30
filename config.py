@@ -1,6 +1,6 @@
 import os
 from typing import Optional, List
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 from pathlib import Path
 
@@ -45,10 +45,13 @@ class Settings(BaseSettings):
     qwen_device: str = Field(default="auto", env="QWEN_DEVICE")  # "cpu", "cuda", or "auto"
     
     # OpenAI Configuration
-    openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
-    class Config:
-        env_file = "openai.env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False,
+    )
+    openai_api_key: str = ""
     openai_model: str = Field(default="gpt-5-mini", env="OPENAI_MODEL")
     openai_max_tokens: int = Field(default=2048, env="OPENAI_MAX_TOKENS")
     openai_temperature: float = Field(default=0.7, env="OPENAI_TEMPERATURE")
