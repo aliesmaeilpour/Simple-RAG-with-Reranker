@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 from typing import List, Dict, Tuple, Optional
 from sentence_transformers import SentenceTransformer, CrossEncoder
-from langchain.schema import Document
+from langchain_core.documents import Document
 from config import settings
 import logging
 from openai import OpenAI
