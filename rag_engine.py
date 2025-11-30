@@ -23,7 +23,7 @@ class RAGEngine:
 
     def answer_question(self, query: str, llm_provider: str = "qwen", top_k: int = 5):
         start = time.time()
-        candidates = self.vector_service.search(query, k=top_k)
+        candidates = self.vector_service.search(query, top_k=top_k)
         context = "\n".join([c[0].get("content_preview", "") for c in candidates])
 
         if llm_provider == "openai":
