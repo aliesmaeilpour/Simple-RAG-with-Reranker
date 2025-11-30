@@ -12,3 +12,4 @@ transformers
 openai
 pandas
 numpy
+pydantic-settings
