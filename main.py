@@ -34,4 +34,4 @@ async def query_docs(req: QueryRequest):
     return QueryResponse(success=True, question=req.question, answer=result["answer"], sources=[], processing_time=result["processing_time"], llm_provider=req.llm_provider)
 
 if __name__ == "__main__":
-    uvicorn.Server(uvicorn.Config(app, host=settings.host, port=settings.port, reload=settings.debug))
+    uvicorn.run(app, host=settings.host, port=settings.port, reload=settings.debug)
