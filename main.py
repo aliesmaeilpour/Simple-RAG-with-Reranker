@@ -38,9 +38,9 @@ async def upload_document(file: UploadFile = File(...)):
         f.write(content)
     
     chunks, meta = await processor.process_file(file_path)
-    print(meta)
+    print(meta.get('doc_id'))
     rag.vector_service.add_documents(chunks)
-    return DocumentResponse(success=True, message="Document uploaded", doc_id=meta.doc_id, metadata=meta)
+    return DocumentResponse(success=True, message="Document uploaded", doc_id=meta['doc_id'], metadata=meta)
 
 @app.post("/query", response_model=QueryResponse)
 async def query_docs(req: QueryRequest):
