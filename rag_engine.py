@@ -1,7 +1,7 @@
 import time
 import logging
 from typing import List
-from langchain.schema import Document
+from langchain_core.documents import Document
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from openai import OpenAI
 from config import settings
