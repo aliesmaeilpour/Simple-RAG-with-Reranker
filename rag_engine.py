@@ -32,7 +32,7 @@ class RAGEngine:
             print(f"Context length: {len(context)}")
             print(f"Context preview: {context[:500] if context else 'EMPTY!'}")
             completion = self.openai_client.chat.completions.create(
-                model="gpt-5-nano",
+                model="gpt-5-mini",
                 messages=[
                     {"role": "system", "content": "You are an expert Persian assistant."},
                     {"role": "user", "content": f"Question: {query}\n Context:\n{context}"},
