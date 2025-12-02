@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     # Reranker Configuration
     use_reranking: bool = Field(default=True, env="RERANK_ENABLED")
     rerank_model: str = Field(
-        default="BAAI/bge-reranker-v2-m3",
+        default="mixedbread-ai/mxbai-rerank-xsmall-v1",
         env="RERANK_MODEL"
     )
     rerank_top_k: int = Field(default=5, env="RERANK_TOP_K")
