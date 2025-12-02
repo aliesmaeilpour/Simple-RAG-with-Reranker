@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     )
     openai_api_key: str = ""
     openai_model: str = Field(default="gpt-5-nano", env="OPENAI_MODEL")
-    openai_max_tokens: int = Field(default=512, env="OPENAI_MAX_TOKENS")
+    openai_max_tokens: int = Field(default=1024, env="OPENAI_MAX_TOKENS")
     openai_temperature: float = Field(default=1, env="OPENAI_TEMPERATURE")
     openai_embedding_model: str = Field(default="text-embedding-3-small", env="OPENAI_EMBEDDING_MODEL")
     
