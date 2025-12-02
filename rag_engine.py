@@ -22,27 +22,23 @@ class RAGEngine:
             self.model = AutoModelForCausalLM.from_pretrained(settings.qwen_model_name, device_map=settings.qwen_device)
 
     def answer_question(self, query: str, llm_provider: str = "qwen", top_k: int = 5):
+
         start = time.time()
         candidates = self.vector_service.search(query, top_k=top_k)
         # print('candidates:', candidates)
         context = "\n".join([c.get("content", "") for c in candidates])
 
         if llm_provider == "openai":
-            print(f"Query: {query}")
-            print(f"Context length: {len(context)}")
-            print(f"Context preview: {context[:500] if context else 'EMPTY!'}")
             completion = self.openai_client.chat.completions.create(
                 model=settings.openai_model,
                 messages=[
-                    {"role": "system", "content": "You are an expert Persian assistant."},
-                    {"role": "user", "content": f"Question: {query}\n Context:\n{context}"},
+                    {"role": "system", "content": "You are a financial expert Persian assistant."},
+                    {"role": "user", "content": f"Question: {query}\n Context:\n{context}. if the question is not in the ducuments or it is not related to finance just say you do not know the answer."},
                 ],
                 temperature=settings.openai_temperature,
                 max_completion_tokens=settings.openai_max_tokens,
             )
             print(f"Full completion object: {completion}")
-            print(f"Finish reason: {completion.choices[0].finish_reason}")
-            print(f"Message content: {completion.choices[0].message.content}")
             answer = completion.choices[0].message.content
         else:
             prompt = f"Question: {query}\n\n Context:\n{context}\n\n"
