@@ -16,3 +16,4 @@ pydantic-settings
 langchain-text-splitters
 langchain-core
 python-multipart
+tabulate
