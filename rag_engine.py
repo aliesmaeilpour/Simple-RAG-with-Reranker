@@ -28,6 +28,9 @@ class RAGEngine:
         context = "\n".join([c.get("content_preview", "") for c in candidates])
 
         if llm_provider == "openai":
+            print(f"Query: {query}")
+            print(f"Context length: {len(context)}")
+            print(f"Context preview: {context[:500] if context else 'EMPTY!'}")
             completion = self.openai_client.chat.completions.create(
                 model=settings.openai_model,
                 messages=[
@@ -37,6 +40,9 @@ class RAGEngine:
                 temperature=settings.openai_temperature,
                 max_completion_tokens=settings.openai_max_tokens,
             )
+            print(f"Full completion object: {completion}")
+            print(f"Finish reason: {completion.choices[0].finish_reason}")
+            print(f"Message content: {completion.choices[0].message.content}")
             answer = completion.choices[0].message.content
         else:
             prompt = f"Question: {query}\n\n Context:\n{context}\n\n"
