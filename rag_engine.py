@@ -35,7 +35,7 @@ class RAGEngine:
                     {"role": "user", "content": f"Question: {query}\n Context:\n{context}"},
                 ],
                 temperature=settings.openai_temperature,
-                max_tokens=settings.openai_max_tokens,
+                max_completion_tokens=settings.openai_max_tokens,
             )
             answer = completion.choices[0].message.content
         else:
