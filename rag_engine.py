@@ -25,7 +25,7 @@ class RAGEngine:
         start = time.time()
         candidates = self.vector_service.search(query, top_k=top_k)
         # print('candidates:', candidates)
-        context = "\n".join([c.get("content_preview", "") for c in candidates])
+        context = "\n".join([c.get("content", "") for c in candidates])
 
         if llm_provider == "openai":
             print(f"Query: {query}")
