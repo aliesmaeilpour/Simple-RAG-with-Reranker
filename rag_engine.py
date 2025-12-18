@@ -185,7 +185,7 @@ Please provide a helpful response based on the user's query and the context resu
             )
             answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
             elapsed = time.time() - start
-            return {"answer": answer, "processing_time": elapsed}
+            return {"response": answer, "processing_time": elapsed}
     
     def get_session_history(self, session_id: str) -> List[Dict[str, Any]]:
         """Get full chat history for a session."""

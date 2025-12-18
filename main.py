@@ -62,7 +62,7 @@ async def query_docs(req: QueryRequest):
     return QueryResponse(
         success=True, 
         question=req.question, 
-        answer=result["answer"], 
+        answer=result["response"], 
         sources=[], 
         processing_time=result["processing_time"], 
         llm_provider=req.llm_provider
