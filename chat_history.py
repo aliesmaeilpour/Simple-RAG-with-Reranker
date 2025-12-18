@@ -144,7 +144,7 @@ class ChromaChatHistory:
             "message_index": self._get_next_index(session_id),
         }
         
-        embedding = self._get_embeddings(content)
+        embedding = self._get_embeddings([content])
 
         if isinstance(embedding, np.ndarray):
             embedding_list = embedding.tolist()
