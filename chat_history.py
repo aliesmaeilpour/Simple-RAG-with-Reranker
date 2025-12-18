@@ -288,7 +288,7 @@ class ChromaChatHistory:
             where_filter["source"] = source
 
         results = self.documents_collection.query(
-            query_embeddings=[query_embedding],
+            query_embeddings=query_embedding,
             where=where_filter,
             n_results=n_results,
             include=["documents", "metadatas", "distances"],
@@ -367,7 +367,7 @@ class ChromaChatHistory:
         query_embeddings = embedding.tolist()
 
         results = self.messages_collection.query(
-            query_embeddings=[query_embeddings],
+            query_embeddings=query_embeddings,
             where={"session_id": session_id},
             n_results=5,
         )
