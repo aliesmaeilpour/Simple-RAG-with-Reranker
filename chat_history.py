@@ -1,6 +1,6 @@
 from sentence_transformers import SentenceTransformer
 import logging
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Union
 from uuid import uuid4
 from datetime import datetime
 import chromadb
@@ -86,8 +86,11 @@ class ChromaChatHistory:
             logger.error(f"Failed to initialize ChromaDB: {e}")
             raise
 
-    def _get_openai_embeddings(self, texts: List[str]) -> np.ndarray:
+    def _get_openai_embeddings(self, texts: Union[str, List[str]]) -> np.ndarray:
         """"get embeddings using OpenAI API key"""
+
+        if isinstance(texts, str):
+            texts = [texts]
         texts = [text.replace('\n', ' ') for text in texts]
         batch_size = 2048
         all_embeddings = []
@@ -110,7 +113,7 @@ class ChromaChatHistory:
         
         return np.array(all_embeddings, dtype=np.float32)
     
-    def _get_embeddings(self, texts: List[str]):
+    def _get_embeddings(self, texts: Union[str, List[str]]):
         """"Get emgeddings using the defined provider"""
         if settings.llm_provider == 'openai':
             logger.info(f'Generating OpenAI embeddings for {len(texts)} texts.')
@@ -144,7 +147,7 @@ class ChromaChatHistory:
             "message_index": self._get_next_index(session_id),
         }
         
-        embedding = self._get_embeddings([content])
+        embedding = self._get_embeddings(content)
 
         if isinstance(embedding, np.ndarray):
             embedding_list = embedding.tolist()
@@ -280,7 +283,7 @@ class ChromaChatHistory:
         if not self._initialized:
             self.initialize()
 
-        query_embedding = self._get_embeddings(query)
+        query_embedding = self._get_embeddings([query])
 
         query_embedding = query_embedding.tolist()
 
