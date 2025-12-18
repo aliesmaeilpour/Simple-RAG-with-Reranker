@@ -1,6 +1,5 @@
 from sentence_transformers import SentenceTransformer
 import logging
-from config import Config
 from typing import List, Dict, Optional, Any
 from uuid import uuid4
 from datetime import datetime
