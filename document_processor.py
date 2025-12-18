@@ -1,23 +1,13 @@
 import hashlib
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple
 import pandas as pd
-import numpy as np
 from datetime import datetime
-
-# PDF processing
-import PyPDF2
 import pdfplumber
-import fitz  # PyMuPDF
-
-# Word processing
+import fitz 
 from docx import Document as DocxDocument
-
-# Excel processing
 import openpyxl
-
-# LangChain
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from config import settings

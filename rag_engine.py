@@ -1,11 +1,13 @@
 import time
 import logging
-from typing import List
+from typing import List, Dict, Optional, Any
 from langchain_core.documents import Document
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from openai import OpenAI
 from config import settings
 from vector_store import VectorStore
+from chat_history import ChromaChatHistory
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -14,16 +16,110 @@ class RAGEngine:
 
     def __init__(self):
         self.vector_service = VectorStore()
+        self.history_manager = ChromaChatHistory()
         if settings.llm_provider == "openai" and settings.openai_api_key:
             self.openai_client = OpenAI(api_key=settings.openai_api_key)
         else:
             logger.info("Initializing local Qwen model...")
             self.tokenizer = AutoTokenizer.from_pretrained(settings.qwen_model_name)
             self.model = AutoModelForCausalLM.from_pretrained(settings.qwen_model_name, device_map=settings.qwen_device)
+        self.system_prompt = self._build_system_prompt()
+    
+    def _build_system_prompt(self) -> str:
+        """Build the system prompt for the chatbot."""
+        return """You are a highly specialized Senior Financial Analyst and Economic Consultant. Your sole purpose is to assist users with inquiries related to finance, accounting principles, and economic theory. You possess deep expertise in GAAP, IFRS, corporate finance, macroeconomic trends, and financial modeling.
 
-    def answer_question(self, query: str, llm_provider: str = "qwen", top_k: int = 5):
+**Your Capabilities:**
+1.  **Accounting Standards**: You provide detailed explanations of accounting entries, financial statements (Balance Sheet, P&L, Cash Flow), and regulatory standards (GAAP/IFRS).
+2.  **Economic Analysis**: You analyze market trends, inflation, interest rates, GDP, and supply/demand dynamics.
+3.  **Financial Mathematics**: You assist with formulas, ratios (e.g., ROI, ROE, EBITDA), and valuation models (DCF, NPV).
+4.  **Corporate Finance**: You offer insights into capital structure, budgeting, mergers & acquisitions, and risk management.
+
+**Operational Guidelines:**
+- **Strict Domain Limitation**: You must **ONLY** answer questions strictly related to finance, accounting, or economics.
+- **Refusal Protocol**: If a user asks about *any* other topic (e.g., coding, creative writing, sports, general knowledge, medical advice, travel), you must politely but firmly refuse. Use a variation of this standard response: *"I am specialized exclusively in finance, accounting, and economics. I cannot assist with [topic]. Please ask a question related to financial or economic matters."*
+- **Tone**: Maintain a professional, objective, and analytical tone at all times. Avoid slang or casual language.
+- **Formulas & Math**: When explaining calculations, show your work step-by-step. Use standard mathematical notation.
+- **No Personal Investment Advice**: While you can explain financial concepts and analyze market data, you must **NEVER** provide personalized financial advice (e.g., "You should buy Apple stock"). Instead, frame answers as educational analysis or theoretical scenarios.
+
+Current date: {current_date}
+
+"""
+    
+    def _get_system_prompt(self) -> str:
+        """Get system prompt with current date."""
+        return self.system_prompt.format(
+            current_date=datetime.now().strftime("%Y-%m-%d")
+        )
+    
+    def _build_messages(
+        self,
+        user_message: str,
+        chat_history: List[Dict],
+        document: Optional[List[Dict[str, Any]]] = None
+    ) -> List[Dict[str, str]]:
+        """Build the complete message list for OpenAI."""
+        messages = []
+        
+        # 1. System prompt
+        messages.append({
+            "role": "system",
+            "content": self._get_system_prompt()
+        })
+        
+        # 2. Adding chat history
+        messages.extend(chat_history)
+        
+        # 3. Current user message with location context
+        current_content = user_message
+        if document is not None:
+            document_context = "\n".join([c.get("content", "") for c in document])
+            current_content = f"""User Query: {user_message}
+
+---
+document Results:
+{document_context}
+---
+
+Please provide a helpful response based on the user's query and the context results above."""
+        
+        messages.append({
+            "role": "user",
+            "content": current_content
+        })
+        
+        return messages
+
+    def answer_question(
+            self, 
+            query: str, 
+            session_id: str,
+            llm_provider: str = "qwen", 
+            top_k: int = 5,
+    ):
+        """
+        Process a user message and generate a response.
+        
+        Args:
+            user_message: The user's input message
+            session_id: Unique session identifier
+            force_location_search: Force location search even if not detected
+            location_filters: Optional filters for location search
+        
+        Returns:
+            Dictionary containing response and metadata
+        """
 
         start = time.time()
+
+        chat_history = self.history_manager.get_formatted_history_for_context(
+            user_message=query,
+            session_id=session_id
+        )
+
+        search_in_documents = self.history_manager.has_uploaded_documents(query)
+        contexts = None
+
         candidates = self.vector_service.search(query, top_k=top_k)
         # print('candidates:', candidates)
         context = "\n".join([c.get("content", "") for c in candidates])
