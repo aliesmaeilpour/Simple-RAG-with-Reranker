@@ -26,8 +26,11 @@ async def health_check():
         components={"vector_store": True, "llm": True},
     )
 
-@app.post("/documents/upload", response_model=DocumentResponse)
-async def upload_document(file: UploadFile = File(...)):
+@app.post("/documents/{session_id}/upload", response_model=DocumentResponse)
+async def upload_document(
+    file: UploadFile = File(...), 
+    session_id: str = Path(..., description="Session ID")
+):
     content = await file.read()
     file_extension = os.path.splitext(file.filename)[1]
     unique_filename = f"{uuid.uuid4()}{file_extension}"
@@ -39,9 +42,10 @@ async def upload_document(file: UploadFile = File(...)):
     
     chunks, meta = await processor.process_file(file_path)
     print(meta.get('doc_id'))
-    rag.history_manager.add_document_chunks(chunks)
+    rag.history_manager.add_document_chunks(document_chunks=chunks, session_id=session_id)
+    os.remove(file_path)
     return DocumentResponse(
-        success=True, 
+        success=True,
         message="Document uploaded", 
         doc_id=meta['doc_id'], 
         metadata=meta
