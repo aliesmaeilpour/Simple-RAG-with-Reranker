@@ -117,33 +117,89 @@ Please provide a helpful response based on the user's query and the context resu
             session_id=session_id
         )
 
+        metadata = {
+            "session_id": session_id,
+            "timestamp": datetime.now().isoformat(),
+            "document_search_performed": False,
+            "context_used": []
+        }
+
         search_in_documents = self.history_manager.has_uploaded_documents(query)
         contexts = None
 
-        candidates = self.vector_service.search(query, top_k=top_k)
-        # print('candidates:', candidates)
-        context = "\n".join([c.get("content", "") for c in candidates])
+        if search_in_documents:
+            
+            # Search for locations
+            contexts = self.history_manager.search_documents(
+                user_message=query,
+                session_id=session_id
+            )
+            
+            metadata["location_search_performed"] = True
+            metadata["locations_found"] = len(contexts)
+            metadata["context_used"] = contexts
+        
+        messages = self._build_messages(
+            user_message=query,
+            chat_history=chat_history,
+            document=contexts
+        )
 
         if llm_provider == "openai":
-            completion = self.openai_client.chat.completions.create(
+            response = self.openai_client.chat.completions.create(
                 model=settings.openai_model,
-                messages=[
-                    {"role": "system", "content": "You are a financial expert Persian assistant."},
-                    {"role": "user", "content": f"Question: {query}\n Context:\n{context}. if the question is not in the ducuments or it is not related to finance just say you do not know the answer."},
-                ],
+                messages=messages,
                 temperature=settings.openai_temperature,
                 max_completion_tokens=settings.openai_max_tokens,
             )
-            print(f"Full completion object: {completion}")
-            answer = completion.choices[0].message.content
+            print(f"Full completion object: {response}")
+            assistant_response = response.choices[0].message.content
+            input_tokens = response.usage.prompt_tokens
+            output_tokens = response.usage.completion_tokens
+            self.history_manager.add_conversation(
+                user_message=query,
+                assistant_message=assistant_response,
+                session_id=session_id
+            )
+            elapsed = time.time() - start
+            return {
+                "response": assistant_response,
+                "metadata": metadata,
+                "input_token": input_tokens,
+                "output_token": output_tokens,
+                "processing_time": elapsed
+            }
+
         else:
-            prompt = f"Question: {query}\n\n Context:\n{context}\n\n"
+            prompt = messages
             inputs = self.tokenizer(prompt, return_tensors="pt")
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=settings.qwen_max_tokens,
                 temperature=settings.qwen_temperature,
             )
+            self.history_manager.add_conversation(
+                user_message=query,
+                assistant_message=assistant_response,
+                session_id=session_id
+            )
             answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        elapsed = time.time() - start
-        return {"answer": answer, "processing_time": elapsed, "sources": candidates}
+            elapsed = time.time() - start
+            return {"answer": answer, "processing_time": elapsed}
+    
+    def get_session_history(self, session_id: str) -> List[Dict[str, Any]]:
+        """Get full chat history for a session."""
+        full_chat_history = self.history_manager.get_recent_messages(session_id)
+        return full_chat_history
+    
+    def delete_session(self, session_id: str) -> bool:
+        """Clear a chat session."""
+        return self.history_manager.delete_session(session_id)
+    
+    def get_session_stats(self, session_id: str) -> Dict[str, Any]:
+        """Get statistics for a session."""
+        return self.history_manager.get_session_stats(session_id)
+    
+    def get_all_sessions(self) -> List[str]:
+        """List all active sessions."""
+        return self.history_manager.list_sessions()
