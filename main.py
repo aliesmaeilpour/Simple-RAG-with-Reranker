@@ -53,7 +53,12 @@ async def upload_document(
 
 @app.post("/query", response_model=QueryResponse)
 async def query_docs(req: QueryRequest):
-    result = rag.answer_question(req.question, llm_provider=req.llm_provider.value, top_k=req.top_k)
+    result = rag.answer_question(
+        req.question, 
+        session_id=req.session_id, 
+        llm_provider=req.llm_provider.value, 
+        top_k=req.top_k
+    )
     return QueryResponse(
         success=True, 
         question=req.question, 

@@ -66,14 +66,15 @@ class DocumentListResponse(BaseModel):
 
 class QueryRequest(BaseModel):
     """Request model for querying documents"""
-    question: str = Field(..., min_length=1, max_length=1000, description="User question")
-    doc_ids: Optional[List[str]] = Field(None, description="Specific document IDs to search")
-    llm_provider: Optional[LLMProvider] = Field(LLMProvider.OPENAI, description="LLM provider to use")
-    top_k: Optional[int] = Field(5, ge=1, le=20, description="Number of relevant chunks to retrieve")
-    include_tables: bool = Field(True, description="Include table content in search")
-    rerank: bool = Field(True, description="Enable reranking of results")
-    temperature: Optional[float] = Field(0.7, ge=0, le=1, description="LLM temperature")
-    max_tokens: Optional[int] = Field(2048, ge=100, le=4096, description="Maximum tokens in response")
+    question: str
+    session_id: str
+    doc_ids: Optional[List[str]] = None
+    llm_provider: Optional[LLMProvider] = LLMProvider.OPENAI
+    top_k: Optional[int] = 5
+    include_tables: bool = True
+    rerank: bool = True
+    temperature: Optional[float] = 0.7
+    max_tokens: Optional[int] = 2048
 
 
 class TableQueryRequest(QueryRequest):
