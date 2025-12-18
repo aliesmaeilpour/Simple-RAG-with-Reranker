@@ -361,8 +361,10 @@ class ChromaChatHistory:
 
         embedding = self._get_embeddings(query)
 
+        query_embeddings = embedding.tolist()
+
         results = self.messages_collection.query(
-            query_embeddings=[embedding],
+            query_embeddings=query_embeddings,
             where={"session_id": session_id},
             n_results=5,
         )
