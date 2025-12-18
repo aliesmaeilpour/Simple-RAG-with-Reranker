@@ -192,7 +192,7 @@ class ChromaChatHistory:
         Returns:
             List of chunk IDs
         """
-        self._ensure_initialized()
+        # self._ensure_initialized()
 
         if not document_chunks:
             return []
@@ -270,7 +270,8 @@ class ChromaChatHistory:
         Returns:
             List of matching document chunks
         """
-        self._ensure_initialized()
+        if not self._initialized:
+            self.initialize()
 
         query_embedding = self._get_embeddings(query)
 
@@ -342,9 +343,7 @@ class ChromaChatHistory:
         Get the next message index for a session.
         """
         existing = self.messages_collection.get(
-            where={"session_id": session_id,
-                   "content_type": "chat"
-            },
+            where={"session_id": session_id},
             include=["metadatas"],
         )
         
@@ -414,7 +413,8 @@ class ChromaChatHistory:
         """
         Delete all messages and documents for a session.
         """
-        self._ensure_initialized()
+        if not self._initialized:
+            self.initialize()
 
         self.messages_collection.delete(where={"session_id": session_id})
         self.documents_collection.delete(where={"session_id": session_id})
