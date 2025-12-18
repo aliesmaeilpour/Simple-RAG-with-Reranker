@@ -197,7 +197,7 @@ Please provide a helpful response based on the user's query and the context resu
         """Clear a chat session."""
         return self.history_manager.delete_session(session_id)
     
-    def get_session_stats(self, session_id: str) -> Dict[str, Any]:
+    def get_messages_collection_session_stats(self, session_id: str) -> Dict[str, Any]:
         """Get statistics for a session."""
         return self.history_manager.get_session_stats(session_id)
     

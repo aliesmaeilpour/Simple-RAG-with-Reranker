@@ -489,7 +489,7 @@ class ChromaChatHistory:
         # Return simplified format
         return messages
     
-    def get_message_collection_session_stats(self, session_id: str) -> Dict[str, Any]:
+    def get_messages_collection_session_stats(self, session_id: str) -> Dict[str, Any]:
         """
         Get statistics for a specific session.
         
