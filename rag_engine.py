@@ -15,7 +15,7 @@ class RAGEngine:
     """Main RAG pipeline engine for Qwen and OpenAI models"""
 
     def __init__(self):
-        self.vector_service = VectorStore()
+        # self.vector_service = VectorStore()
         self.history_manager = ChromaChatHistory()
         if settings.llm_provider == "openai" and settings.openai_api_key:
             self.openai_client = OpenAI(api_key=settings.openai_api_key)
