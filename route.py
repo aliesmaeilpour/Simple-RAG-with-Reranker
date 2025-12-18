@@ -15,8 +15,8 @@ from rag_engine import RAGEngine
 
 
 router = APIRouter()
-
-_chatbot: Optional[RAGEngine] = None
+_chatbot = RAGEngine()
+# _chatbot: Optional[RAGEngine] = None
 
 def get_chatbot() -> RAGEngine:
     """Dependency to get chatbot instance."""
