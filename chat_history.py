@@ -146,9 +146,11 @@ class ChromaChatHistory:
         
         embedding = self._get_embeddings(content)
 
+        query_embeddings = embedding.tolist()
+
         self.messages_collection.add(
             ids=[message_id],
-            embeddings=[embedding],
+            embeddings=query_embeddings,
             documents=[content],
             metadatas=[metadata],
         )
