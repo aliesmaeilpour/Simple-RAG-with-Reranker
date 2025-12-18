@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI, UploadFile, File, APIRouter
+from fastapi import FastAPI, UploadFile, File, Path
 import time
 import logging
 from models import *
@@ -8,7 +8,7 @@ from document_processor import DocumentProcessor
 from rag_engine import RAGEngine
 import os
 import uuid
-from pathlib import Path
+# from pathlib import Path
 from route import router
 
 app = FastAPI(title=settings.app_name)
@@ -16,7 +16,7 @@ app.include_router(router)
 processor = DocumentProcessor()
 rag = RAGEngine()
 startup_time = time.time()
-UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR = "uploads"
 
 @app.get("/health")
 async def health_check():
