@@ -34,7 +34,7 @@ async def upload_document(
     content = await file.read()
     file_extension = os.path.splitext(file.filename)[1]
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = UPLOAD_DIR / unique_filename
+    file_path = UPLOAD_DIR + '/' + unique_filename
     
     # Save file
     with open(file_path, "wb") as f:
@@ -51,7 +51,7 @@ async def upload_document(
         metadata=meta
     )
 
-@app.post("/chat", response_model=QueryResponse)
+@app.post("/query", response_model=QueryResponse)
 async def query_docs(req: QueryRequest):
     result = rag.answer_question(req.question, llm_provider=req.llm_provider.value, top_k=req.top_k)
     return QueryResponse(
