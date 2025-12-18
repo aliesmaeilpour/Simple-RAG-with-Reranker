@@ -150,7 +150,7 @@ class ChromaChatHistory:
 
         self.messages_collection.add(
             ids=[message_id],
-            embeddings=query_embeddings,
+            embeddings=[query_embeddings],
             documents=[content],
             metadatas=[metadata],
         )
@@ -277,6 +277,8 @@ class ChromaChatHistory:
 
         query_embedding = self._get_embeddings(query)
 
+        query_embedding = query_embedding.tolist()
+
         where_filter: Dict[str, Any] = {
             "session_id": session_id,
             "content_type": "document"
@@ -365,7 +367,7 @@ class ChromaChatHistory:
         query_embeddings = embedding.tolist()
 
         results = self.messages_collection.query(
-            query_embeddings=query_embeddings,
+            query_embeddings=[query_embeddings],
             where={"session_id": session_id},
             n_results=5,
         )
