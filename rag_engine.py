@@ -24,6 +24,7 @@ class RAGEngine:
             self.tokenizer = AutoTokenizer.from_pretrained(settings.qwen_model_name)
             self.model = AutoModelForCausalLM.from_pretrained(settings.qwen_model_name, device_map=settings.qwen_device)
         self.system_prompt = self._build_system_prompt()
+        print("LocationChatbot initialized successfully")
     
     def _build_system_prompt(self) -> str:
         """Build the system prompt for the chatbot."""
