@@ -136,6 +136,9 @@ class ChromaChatHistory:
         Store a new message into ChromaDB.
         """
 
+        if not self._initialized:
+            self.initialize()
+
         message_id = f"{session_id}_{uuid4().hex[:12]}"
         timestamp = datetime.now().isoformat()
         
@@ -202,7 +205,8 @@ class ChromaChatHistory:
         Returns:
             List of chunk IDs
         """
-        # self._ensure_initialized()
+        if not self._initialized:
+            self.initialize()
 
         if not document_chunks:
             return []
@@ -251,6 +255,10 @@ class ChromaChatHistory:
         """
         Checks if there is at least one document associated with the session_id.
         """
+
+        if not self._initialized:
+            self.initialize()
+        
         result = self.documents_collection.get(
             where={"session_id": session_id},
             limit=1,
@@ -354,6 +362,10 @@ class ChromaChatHistory:
         """
         Get the next message index for a session.
         """
+
+        if not self._initialized:
+            self.initialize()
+        
         existing = self.messages_collection.get(
             where={"session_id": session_id},
             include=["metadatas"],
@@ -369,6 +381,9 @@ class ChromaChatHistory:
         return max(indices) + 1
 
     def search(self, query: str, session_id: str) -> List[Dict]:
+
+        if not self._initialized:
+            self.initialize()
 
         embedding = self._get_embeddings(query)
 
@@ -437,6 +452,10 @@ class ChromaChatHistory:
         """
         Deletes the entire Chroma collection.
         """
+
+        if not self._initialized:
+            self.initialize()
+        
         try:
             self.chroma.delete_collection(self.collection_name)
         except Exception:
