@@ -190,7 +190,7 @@ Please provide a helpful response based on the user's query and the context resu
                 "metadata": metadata,
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
-                "reasoning tokens": reasoning_tokens,
+                "reasoning_tokens": reasoning_tokens,
                 "processing_time": elapsed
             }
 
