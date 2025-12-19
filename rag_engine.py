@@ -231,7 +231,7 @@ If the context doesn't contain relevant information, say so honestly."""
             Dictionary containing response and metadata
         """
 
-        start = time.time()
+        start_time = time.time()
 
         chat_history = self.history_manager.get_formatted_history_for_context(
             user_message=query,
@@ -273,10 +273,19 @@ If the context doesn't contain relevant information, say so honestly."""
             temperature=settings.openai_temperature,
             max_completion_tokens=settings.openai_max_tokens,
             stream=True,
+            stream_options={"include_usage": True}
         )
 
         # 2. Start yielding tokens immediately
         for chunk in stream:
+
+            if chunk.usage is not None:
+                usage_data = {
+                    "prompt_tokens": chunk.usage.prompt_tokens,
+                    "completion_tokens": chunk.usage.completion_tokens,
+                    "total_tokens": chunk.usage.total_tokens,
+                }
+
             if not chunk.choices:
                 continue
 
@@ -292,6 +301,13 @@ If the context doesn't contain relevant information, say so honestly."""
             assistant_message=full_response,
             session_id=session_id,
         )
+        elapsed = time.time() - start_time
+        yield {
+            "type": "done",
+            "full_response": full_response,
+            "usage": usage_data,
+            "processing_time": elapsed
+        }
     
     def get_session_history(self, session_id: str) -> List[Dict[str, Any]]:
         """Get full chat history for a session."""
