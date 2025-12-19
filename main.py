@@ -77,6 +77,7 @@ def chat_stream(query: str, session_id: str | None = None):
 
     def generate():
         for token in rag.answer_question_stream(query, session_id):
+            print(token)
             yield f"data: {token}\n\n"
 
         yield "data: [DONE]\n\n"
