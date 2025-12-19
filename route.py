@@ -54,28 +54,28 @@ async def upload_document(
     session_id: str = Path(..., description="Session ID"),
     chatbot: RAGEngine = Depends(get_chatbot)
 ):
-    # try:
-    content = await file.read()
-    file_extension = os.path.splitext(file.filename)[1]
-    unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = UPLOAD_DIR + '/' + unique_filename
-    
-    # Save file
-    with open(file_path, "wb") as f:
-        f.write(content)
-    
-    chunks, meta = await processor.process_file(file_path)
-    print(meta.get('doc_id'))
-    chatbot.history_manager.add_document_chunks(document_chunks=chunks, session_id=session_id)
-    os.remove(file_path)
-    return DocumentResponse(
-        success=True,
-        message="Document uploaded", 
-        doc_id=meta['doc_id'], 
-        metadata=meta
-    )
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=f"Document processing error: {str(e)}")
+    try:
+        content = await file.read()
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = UPLOAD_DIR + '/' + unique_filename
+        
+        # Save file
+        with open(file_path, "wb") as f:
+            f.write(content)
+        
+        chunks, meta = await processor.process_file(file_path)
+        print(meta.get('doc_id'))
+        chatbot.history_manager.add_document_chunks(document_chunks=chunks, session_id=session_id)
+        os.remove(file_path)
+        return DocumentResponse(
+            success=True,
+            message="Document uploaded", 
+            doc_id=meta['doc_id'], 
+            metadata=meta
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Document processing error: {str(e)}")
     
 
 @router.post(
@@ -305,13 +305,13 @@ async def delete_session(
     chatbot: RAGEngine = Depends(get_chatbot)
 ):
     """Delete a session and all its history."""
-    try:
-        success = chatbot.delete_session(session_id)
+    # try:
+    success = chatbot.delete_session(session_id)
         
-        if not success:
-            raise HTTPException(status_code=404, detail="Session not found")
+        # if not success:
+        #     raise HTTPException(status_code=404, detail="Session not found")
         
-        return None
+    return None
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
