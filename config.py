@@ -78,6 +78,6 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # Create necessary directories
-Path(settings.vector_store_path).mkdir(parents=True, exist_ok=True)
+Path(settings.chromadb_path).mkdir(parents=True, exist_ok=True)
 Path("./logs").mkdir(parents=True, exist_ok=True)
 Path("./uploads").mkdir(parents=True, exist_ok=True)
