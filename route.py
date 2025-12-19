@@ -296,6 +296,7 @@ async def get_session_stats(
 
 @router.delete(
     "/sessions/{session_id}/delete",
+    response_model=DeleteSession,
     status_code=204,
     description="Delete a chat session and its history.",
     tags=["Sessions"]
@@ -307,11 +308,11 @@ async def delete_session(
     """Delete a session and all its history."""
     try:
         success = chatbot.delete_session(session_id)
-            
-        if not success:
-            raise HTTPException(status_code=404, detail="Session not found")
         
-        return None
+        return DeleteSession(
+            success=success,
+            session_id=session_id
+        )
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")

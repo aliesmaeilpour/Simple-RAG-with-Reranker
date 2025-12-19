@@ -203,6 +203,11 @@ class SessionStats(BaseModel):
     total_characters: Optional[int] = None
 
 
+class DeleteSession:
+    success: bool
+    session_id: str
+
+
 class ErrorDetail(BaseModel):
     field: Optional[str] = None
     message: str
