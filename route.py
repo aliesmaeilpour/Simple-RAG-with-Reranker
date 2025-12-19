@@ -1,19 +1,18 @@
-from fastapi import APIRouter, HTTPException, Path, Depends
+from fastapi import APIRouter, HTTPException, Path, Depends, UploadFile, File
+from fastapi.responses import StreamingResponse
 from typing import Optional
 from datetime import datetime
-from models import (
-    ChatRequest,
-    ChatResponse,
-    SessionInfo,
-    SessionHistory,
-    SessionListResponse,
-    SessionStats,
-    ErrorResponse
-)
+from models import *
 from rag_engine import RAGEngine
-
+import time
+import os
+import uuid
+from document_processor import DocumentProcessor
 
 router = APIRouter()
+processor = DocumentProcessor()
+startup_time = time.time()
+UPLOAD_DIR = "uploads"
 _chatbot = RAGEngine()
 # _chatbot: Optional[RAGEngine] = None
 
@@ -33,10 +32,129 @@ def set_chatbot(chatbot: RAGEngine):
     _chatbot = chatbot
 
 
+@router.get('/ping', tags=["Ping"], response_model=Pong)
+async def get_uploadfile():
+
+    return Pong(
+        ok=True
+    )
+
+
 @router.post(
-    "/chat",
+        "/documents/{session_id}/upload", 
+        response_model=DocumentResponse,
+        tags=["Documents"],
+        responses={
+            200: {"description": "Successful response"},
+            400: {"model": ErrorResponse, "description": "Invalid request"},
+            503: {"model": ErrorResponse, "description": "Service unavailable"},
+    }
+)
+async def upload_document(
+    file: UploadFile = File(...), 
+    session_id: str = Path(..., description="Session ID")
+):
+    try:
+        content = await file.read()
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = UPLOAD_DIR + '/' + unique_filename
+        
+        # Save file
+        with open(file_path, "wb") as f:
+            f.write(content)
+        
+        chunks, meta = await processor.process_file(file_path)
+        print(meta.get('doc_id'))
+        _chatbot.history_manager.add_document_chunks(document_chunks=chunks, session_id=session_id)
+        os.remove(file_path)
+        return DocumentResponse(
+            success=True,
+            message="Document uploaded", 
+            doc_id=meta['doc_id'], 
+            metadata=meta
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chat processing error: {str(e)}")
+    
+
+@router.post(
+        "/chat", 
+        response_model=QueryResponse,
+        tags=["Chat"],
+        responses={
+            200: {"description": "Successful response"},
+            400: {"model": ErrorResponse, "description": "Invalid request"},
+            503: {"model": ErrorResponse, "description": "Service unavailable"},
+    }
+)
+async def query_docs(
+    req: QueryRequest,
+    chatbot: RAGEngine = Depends(get_chatbot)
+):
+    try:
+        result = chatbot.answer_question(
+            req.question, 
+            session_id=req.session_id, 
+            llm_provider=req.llm_provider.value, 
+            top_k=req.top_k
+        )
+        return QueryResponse(
+            success=True, 
+            question=req.question, 
+            answer=result["response"], 
+            sources=[], 
+            processing_time=result["processing_time"], 
+            llm_provider=req.llm_provider,
+            input_tokens=result["input_tokens"],
+            output_tokens=result["output_tokens"],
+            reasoning_tokens=result["reasoning_tokens"]
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chat processing error: {str(e)}")
+
+
+@router.post(
+        "/chat/stream",
+        response_model=QueryResponse,
+        tags=["Chat"],
+        responses={
+            200: {"description": "Successful response"},
+            400: {"model": ErrorResponse, "description": "Invalid request"},
+            503: {"model": ErrorResponse, "description": "Service unavailable"},
+    }
+)
+def chat_stream(
+    req: QueryRequestStream,
+    chatbot: RAGEngine = Depends(get_chatbot)
+):
+
+    try:
+
+        def generate():
+            for token in chatbot.answer_question_stream(req.question, req.session_id):
+                # print(token, end='')
+                yield f"data: {token}\n\n"
+
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chat processing error: {str(e)}")
+
+
+@router.post(
+    "/query",
     response_model=ChatResponse,
-    tags=["Chat"],
+    tags=["query"],
     responses={
         200: {"description": "Successful response"},
         400: {"model": ErrorResponse, "description": "Invalid request"},

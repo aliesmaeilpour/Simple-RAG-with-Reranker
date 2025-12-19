@@ -215,8 +215,7 @@ If the context doesn't contain relevant information, say so honestly."""
     def answer_question_stream(
             self, 
             query: str, 
-            session_id: str,
-            top_k: int = 5,
+            session_id: str
     ):
         """
         Process a user message and generate a response.
@@ -283,7 +282,7 @@ If the context doesn't contain relevant information, say so honestly."""
                 usage_data = {
                     "prompt_tokens": chunk.usage.prompt_tokens,
                     "completion_tokens": chunk.usage.completion_tokens,
-                    "total_tokens": chunk.usage.total_tokens,
+                    "reasoning_tokens": chunk.usage.completion_tokens_details.reasoning_tokens
                 }
 
             if not chunk.choices:

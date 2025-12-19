@@ -76,6 +76,14 @@ class QueryRequest(BaseModel):
     temperature: Optional[float] = 0.7
     max_tokens: Optional[int] = 2048
 
+class QueryRequestStream(BaseModel):
+    question: str
+    session_id: str
+    doc_ids: Optional[List[str]] = None
+    top_k: Optional[int] = 5
+    include_tables: bool = True
+    rerank: bool = True
+
 
 class TableQueryRequest(QueryRequest):
     """Request model for table-specific queries"""
@@ -214,3 +222,7 @@ class HealthStatus(str, Enum):
     healthy = "healthy"
     degraded = "degraded"
     unhealthy = "unhealthy"
+
+
+class Pong(BaseModel):
+    ok: bool

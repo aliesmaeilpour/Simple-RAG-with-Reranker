@@ -9,40 +9,36 @@ class Settings(BaseSettings):
     
     # API Configuration
     app_name: str = "Persian RAG System"
-    app_version: str = "1.0.0"
     api_prefix: str = "/api/v1"
-    debug: bool = Field(default=False, env="DEBUG")
+    debug: bool = False
     
     # Server Configuration
-    host: str = Field(default="0.0.0.0", env="HOST")
-    port: int = Field(default=8000, env="PORT")
-    workers: int = Field(default=4, env="WORKERS")
+    host: str = "0.0.0.0"
+    port: int = 8000
+    workers: int = 4
     
     # Document Processing
-    chunk_size: int = Field(default=1000, env="CHUNK_SIZE")
-    chunk_overlap: int = Field(default=200, env="CHUNK_OVERLAP")
-    max_file_size: int = Field(default=50 * 1024 * 1024, env="MAX_FILE_SIZE")  # 50MB
+    chunk_size: int = 1000
+    chunk_overlap: int = 200
+    max_file_size: int = 50 * 1024 * 1024 # 50MB
     allowed_extensions: List[str] = Field(
         default=[".pdf", ".docx", ".xlsx"],
         env="ALLOWED_EXTENSIONS"
     )
     
-    # Vector Store Configuration
-    vector_store_path: str = Field(default="./vector_store", env="VECTOR_STORE_PATH")
-    embedding_model: str = Field(
-        default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-        env="EMBEDDING_MODEL"
-    )
-    vector_dimension: int = Field(default=384, env="VECTOR_DIMENSION")
+    # CromaDB Configuration
+    chromadb_path: str = "./chromadb"
+    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    vector_dimension: int = 384
     
     # LLM Configuration
-    llm_provider: str = Field(default="openai", env="LLM_PROVIDER")  # "qwen" or "openai"
+    llm_provider: str = "openai" # "qwen" or "openai"
     
     # Qwen Configuration
-    qwen_model_name: str = Field(default="Qwen/Qwen3-4B-Instruct-2507", env="QWEN_MODEL")
-    qwen_max_tokens: int = Field(default=512, env="QWEN_MAX_TOKENS")
-    qwen_temperature: float = Field(default=0.7, env="QWEN_TEMPERATURE")
-    qwen_device: str = Field(default="auto", env="QWEN_DEVICE")  # "cpu", "cuda", or "auto"
+    qwen_model_name: str = "Qwen/Qwen3-4B-Instruct-2507"
+    qwen_max_tokens: int = 512
+    qwen_temperature: float = 0.7
+    qwen_device: str = "auto"  # "cpu", "cuda", or "auto"
     
     # OpenAI Configuration
     model_config = SettingsConfigDict(
@@ -52,22 +48,19 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
     openai_api_key: str = ""
-    openai_model: str = Field(default="gpt-5-nano", env="OPENAI_MODEL")
-    openai_max_tokens: int = Field(default=4096, env="OPENAI_MAX_TOKENS")
-    openai_temperature: float = Field(default=1, env="OPENAI_TEMPERATURE")
-    openai_embedding_model: str = Field(default="text-embedding-3-small", env="OPENAI_EMBEDDING_MODEL")
+    openai_model: str = "gpt-5-nano"
+    openai_max_tokens: int = 4096
+    openai_temperature: float = 1
+    openai_embedding_model: str = "text-embedding-3-small"
     
     # Reranker Configuration
-    use_reranking: bool = Field(default=True, env="RERANK_ENABLED")
-    rerank_model: str = Field(
-        default="mixedbread-ai/mxbai-rerank-xsmall-v1",
-        env="RERANK_MODEL"
-    )
-    rerank_top_k: int = Field(default=5, env="RERANK_TOP_K")
+    use_reranking: bool = True
+    rerank_model: str = "mixedbread-ai/mxbai-rerank-xsmall-v1"
+    rerank_top_k: int = 5
     
     # Search Configuration
-    search_k: int = Field(default=5, env="SEARCH_K")
-    search_type: str = Field(default="similarity", env="SEARCH_TYPE")  # "similarity" or "mmr"
+    search_k: int = 5
+    search_type: str = "similarity"  # "similarity" or "mmr"
     
     # Logging Configuration
     log_level: str = Field(default="INFO", env="LOG_LEVEL")
@@ -78,8 +71,8 @@ class Settings(BaseSettings):
         default=["*"],
         env="CORS_ORIGINS"
     )
-    rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
-    rate_limit_period: int = Field(default=60, env="RATE_LIMIT_PERIOD")  # seconds
+    rate_limit_requests: int = 100
+    rate_limit_period: int = 60  # seconds
 
 # Global settings instance
 settings = Settings()
