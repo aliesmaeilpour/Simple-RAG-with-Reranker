@@ -448,24 +448,34 @@ class ChromaChatHistory:
             self.initialize()
 
         
-        # Check if session exists first
-        messages_count = self.messages_collection.count(
-            where={"session_id": session_id}
-        )
-        documents_count = self.documents_collection.count(
-            where={"session_id": session_id}
-        )
-        
-        if messages_count == 0 and documents_count == 0:
-            return False
-        
-        # Perform deletion
         try:
-            if messages_count > 0:
+            # Check existence using get() with where filter
+            messages = self.messages_collection.get(
+                where={"session_id": session_id},
+                limit=1,  # We only need to know if ANY exist
+                include=[]  # Don't fetch embeddings/documents, just IDs
+            )
+            
+            documents = self.documents_collection.get(
+                where={"session_id": session_id},
+                limit=1,
+                include=[]
+            )
+            
+            messages_exist = len(messages["ids"]) > 0
+            documents_exist = len(documents["ids"]) > 0
+            
+            if not messages_exist and not documents_exist:
+                return False  # Session doesn't exist
+            
+            # Perform deletion
+            if messages_exist:
                 self.messages_collection.delete(where={"session_id": session_id})
-            if documents_count > 0:
+            if documents_exist:
                 self.documents_collection.delete(where={"session_id": session_id})
+            
             return True
+            
         except Exception as e:
             logger.info(f"Delete failed: {e}")
             return False

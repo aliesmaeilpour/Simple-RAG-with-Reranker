@@ -46,7 +46,7 @@ def initialize_chatbot() -> RAGEngine:
     """Initialize the chatbot with all required components."""
     global _chatbot_instance
     
-    logger.info("Initializing Location Chatbot...")
+    logger.info("Initializing Finance Aware Chatbot...")
     
     # Validate OpenAI API key
     if not settings.openai_api_key:
@@ -113,7 +113,7 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("=" * 60)
-    logger.info("Shutting down Location-Aware Chatbot API")
+    logger.info("Shutting down Finance-Aware Chatbot API")
     logger.info("=" * 60)
     
     shutdown_chatbot()
