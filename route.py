@@ -297,7 +297,7 @@ async def get_session_stats(
 @router.delete(
     "/sessions/{session_id}/delete",
     response_model=DeleteSession,
-    status_code=204,
+    status_code=200,
     description="Delete a chat session and its history.",
     tags=["Sessions"]
 )
