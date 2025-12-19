@@ -10,6 +10,7 @@ import os
 import uuid
 # from pathlib import Path
 from route import router
+from fastapi.responses import StreamingResponse
 
 app = FastAPI(title=settings.app_name)
 app.include_router(router)
@@ -70,6 +71,26 @@ async def query_docs(req: QueryRequest):
         output_tokens=result["output_tokens"],
         reasoning_tokens=result["reasoning_tokens"]
     )
+
+@app.get("/chat/stream")
+def chat_stream(query: str, session_id: str | None = None):
+
+    def generate():
+        for token in rag.answer_question_stream(query, session_id):
+            yield f"data: {token}\n\n"
+
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # important for nginx
+        },
+    )
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host=settings.host, port=settings.port, reload=settings.debug)

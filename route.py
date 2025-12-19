@@ -57,7 +57,7 @@ async def chat(
     - Generate a helpful response
     """
     try:
-        result = chatbot.chat(
+        result = chatbot.answer_question(
             user_message=request.message,
             session_id=request.session_id
         )

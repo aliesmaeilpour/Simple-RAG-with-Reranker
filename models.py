@@ -25,9 +25,9 @@ class LLMProvider(str, Enum):
 
 class DocumentUploadRequest(BaseModel):
     """Request model for document upload"""
-    file_name: str = Field(..., description="Name of the uploaded file")
-    file_content: bytes = Field(..., description="Binary content of the file")
-    metadata: Optional[Dict[str, Any]] = Field(default={}, description="Additional metadata")
+    file_name: str
+    file_content: bytes
+    metadata: Optional[Dict[str, Any]] = {}
     
     @validator('file_name')
     def validate_file_name(cls, v):
@@ -39,29 +39,29 @@ class DocumentUploadRequest(BaseModel):
 
 class DocumentMetadata(BaseModel):
     """Document metadata model"""
-    doc_id: str = Field(..., description="Unique document identifier")
-    file_name: str = Field(..., description="Original file name")
-    doc_type: DocumentType = Field(..., description="Document type")
+    doc_id: str
+    file_name: str
+    doc_type: DocumentType
     upload_time: datetime = Field(default_factory=datetime.now, description="Upload timestamp")
-    page_count: int = Field(default=0, description="Number of pages")
-    chunk_count: int = Field(default=0, description="Number of chunks created")
-    table_count: int = Field(default=0, description="Number of tables extracted")
-    size_bytes: int = Field(default=0, description="File size in bytes")
-    metadata: Dict[str, Any] = Field(default={}, description="Additional metadata")
+    page_count: int = 0
+    chunk_count: int = 0
+    table_count: int = 0
+    size_bytes: int = 0
+    metadata: Dict[str, Any] = {}
 
 
 class DocumentResponse(BaseModel):
     """Response model for document operations"""
-    success: bool = Field(..., description="Operation success status")
-    message: str = Field(..., description="Response message")
-    doc_id: Optional[str] = Field(None, description="Document ID if applicable")
-    metadata: Optional[DocumentMetadata] = Field(None, description="Document metadata")
+    success: bool
+    message: str
+    doc_id: Optional[str] = None
+    metadata: Optional[DocumentMetadata] = None
 
 
 class DocumentListResponse(BaseModel):
     """Response model for listing documents"""
-    total: int = Field(..., description="Total number of documents")
-    documents: List[DocumentMetadata] = Field(..., description="List of document metadata")
+    total: int
+    documents: List[DocumentMetadata]
 
 
 class QueryRequest(BaseModel):
@@ -79,18 +79,18 @@ class QueryRequest(BaseModel):
 
 class TableQueryRequest(QueryRequest):
     """Request model for table-specific queries"""
-    table_only: bool = Field(True, description="Search only in table content")
-    return_markdown: bool = Field(True, description="Return tables in markdown format")
+    table_only: bool = True
+    return_markdown: bool = True
 
 
 class ChunkMetadata(BaseModel):
     """Metadata for document chunks"""
-    chunk_id: str = Field(..., description="Unique chunk identifier")
-    doc_id: str = Field(..., description="Parent document ID")
-    page_number: int = Field(..., description="Page number in document")
-    content_type: ContentType = Field(..., description="Type of content")
-    confidence_score: float = Field(0.0, description="Retrieval confidence score")
-    text_preview: str = Field(..., description="Preview of chunk content")
+    chunk_id: str
+    doc_id: str
+    page_number: int
+    content_type: ContentType
+    confidence_score: float = 0.0
+    text_preview: str
 
 
 class QueryResponse(BaseModel):
@@ -109,35 +109,35 @@ class QueryResponse(BaseModel):
 
 class HealthCheckResponse(BaseModel):
     """Response model for health check"""
-    status: Literal["healthy", "degraded", "unhealthy"] = Field(..., description="System health status")
-    version: str = Field(..., description="Application version")
-    uptime: float = Field(..., description="Uptime in seconds")
-    components: Dict[str, bool] = Field(..., description="Component health status")
+    status: Literal["healthy", "degraded", "unhealthy"]
+    version: str
+    uptime: float
+    components: Dict[str, bool]
     timestamp: datetime = Field(default_factory=datetime.now, description="Check timestamp")
 
 
 class ReindexRequest(BaseModel):
     """Request model for reindexing"""
-    doc_ids: Optional[List[str]] = Field(None, description="Specific documents to reindex")
-    force: bool = Field(False, description="Force reindex even if up to date")
-    optimize: bool = Field(True, description="Optimize index after reindexing")
+    doc_ids: Optional[List[str]] = None
+    force: bool = False
+    optimize: bool = True
 
 
 class ReindexResponse(BaseModel):
     """Response model for reindexing"""
-    success: bool = Field(..., description="Reindex success status")
-    message: str = Field(..., description="Status message")
-    documents_processed: int = Field(..., description="Number of documents processed")
-    chunks_indexed: int = Field(..., description="Number of chunks indexed")
-    processing_time: float = Field(..., description="Processing time in seconds")
+    success: bool
+    message: str
+    documents_processed: int
+    chunks_indexed: int
+    processing_time: float
 
 
 class ErrorResponse(BaseModel):
     """Standard error response model"""
-    success: bool = Field(False, description="Always false for errors")
-    error: str = Field(..., description="Error type")
-    message: str = Field(..., description="Error message")
-    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    success: bool = False
+    error: str
+    message: str
+    details: Optional[Dict[str, Any]] = None
     timestamp: datetime = Field(default_factory=datetime.now, description="Error timestamp")
 
 

@@ -103,7 +103,8 @@ document Results:
 {document_context}
 ---
 
-Please provide a helpful response based on the user's query and the context results above."""
+Please provide a helpful response based on the user's query and the context results above. 
+If the context doesn't contain relevant information, say so honestly."""
         
         messages.append({
             "role": "user",
@@ -210,6 +211,87 @@ Please provide a helpful response based on the user's query and the context resu
             answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
             elapsed = time.time() - start
             return {"response": answer, "processing_time": elapsed}
+        
+    def answer_question_stream(
+            self, 
+            query: str, 
+            session_id: str,
+            top_k: int = 5,
+    ):
+        """
+        Process a user message and generate a response.
+        
+        Args:
+            user_message: The user's input message
+            session_id: Unique session identifier
+            force_location_search: Force location search even if not detected
+            location_filters: Optional filters for location search
+        
+        Returns:
+            Dictionary containing response and metadata
+        """
+
+        start = time.time()
+
+        chat_history = self.history_manager.get_formatted_history_for_context(
+            user_message=query,
+            session_id=session_id
+        )
+
+        metadata = {
+            "session_id": session_id,
+            "timestamp": datetime.now().isoformat(),
+            "document_search_performed": False,
+            "context_used": []
+        }
+
+        search_in_documents = self.history_manager.has_uploaded_documents(query)
+        contexts = None
+
+        if search_in_documents:
+            
+            # Search for locations
+            contexts = self.history_manager.search_documents(
+                user_message=query,
+                session_id=session_id
+            )
+            
+            metadata["location_search_performed"] = True
+            metadata["locations_found"] = len(contexts)
+            metadata["context_used"] = contexts
+        
+        messages = self._build_messages(
+            user_message=query,
+            chat_history=chat_history,
+            document=contexts
+        )
+        full_response = ""
+
+        stream = self.openai_client.chat.completions.create(
+            model=settings.openai_model,
+            messages=messages,
+            temperature=settings.openai_temperature,
+            max_completion_tokens=settings.openai_max_tokens,
+            stream=True,
+        )
+
+        # 2. Start yielding tokens immediately
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+
+            delta = chunk.choices[0].delta
+
+            if delta.content:
+                full_response += delta.content
+                yield delta.content
+
+        # 3. Save conversation in background
+        self._save_conversation_async(
+            user_message=query,
+            assistant_message=full_response,
+            session_id=session_id,
+        )
     
     def get_session_history(self, session_id: str) -> List[Dict[str, Any]]:
         """Get full chat history for a session."""
