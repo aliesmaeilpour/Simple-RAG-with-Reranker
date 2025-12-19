@@ -65,7 +65,10 @@ async def query_docs(req: QueryRequest):
         answer=result["response"], 
         sources=[], 
         processing_time=result["processing_time"], 
-        llm_provider=req.llm_provider
+        llm_provider=req.llm_provider,
+        input_tokens=result["input_tokens"],
+        output_tokens=result["output_tokens"],
+        reasoning_tokens=result["reasoning_tokens"]
     )
 
 if __name__ == "__main__":
