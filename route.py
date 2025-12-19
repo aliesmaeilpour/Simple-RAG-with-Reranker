@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Path, Depends, UploadFile, File
 from fastapi.responses import StreamingResponse
-from typing import Optional
 from datetime import datetime
 from models import *
 from rag_engine import RAGEngine
@@ -52,30 +51,31 @@ async def get_uploadfile():
 )
 async def upload_document(
     file: UploadFile = File(...), 
-    session_id: str = Path(..., description="Session ID")
+    session_id: str = Path(..., description="Session ID"),
+    chatbot: RAGEngine = Depends(get_chatbot)
 ):
-    try:
-        content = await file.read()
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_path = UPLOAD_DIR + '/' + unique_filename
-        
-        # Save file
-        with open(file_path, "wb") as f:
-            f.write(content)
-        
-        chunks, meta = await processor.process_file(file_path)
-        print(meta.get('doc_id'))
-        _chatbot.history_manager.add_document_chunks(document_chunks=chunks, session_id=session_id)
-        os.remove(file_path)
-        return DocumentResponse(
-            success=True,
-            message="Document uploaded", 
-            doc_id=meta['doc_id'], 
-            metadata=meta
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Chat processing error: {str(e)}")
+    # try:
+    content = await file.read()
+    file_extension = os.path.splitext(file.filename)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = UPLOAD_DIR + '/' + unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    chunks, meta = await processor.process_file(file_path)
+    print(meta.get('doc_id'))
+    chatbot.history_manager.add_document_chunks(document_chunks=chunks, session_id=session_id)
+    os.remove(file_path)
+    return DocumentResponse(
+        success=True,
+        message="Document uploaded", 
+        doc_id=meta['doc_id'], 
+        metadata=meta
+    )
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"Document processing error: {str(e)}")
     
 
 @router.post(
