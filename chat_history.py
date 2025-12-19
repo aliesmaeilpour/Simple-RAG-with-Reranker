@@ -438,15 +438,37 @@ class ChromaChatHistory:
     
     def delete_session(self, session_id: str) -> int:
         """
-        Delete all messages and documents for a session.
+        Delete all data for a session.
+        
+        Returns:
+            True if records existed and were deleted, False if session didn't exist.
         """
+
         if not self._initialized:
             self.initialize()
 
-        self.messages_collection.delete(where={"session_id": session_id})
-        self.documents_collection.delete(where={"session_id": session_id})
-
-        logger.info(f"Deleted session data for session_id={session_id}")
+        
+        # Check if session exists first
+        messages_count = self.messages_collection.count(
+            where={"session_id": session_id}
+        )
+        documents_count = self.documents_collection.count(
+            where={"session_id": session_id}
+        )
+        
+        if messages_count == 0 and documents_count == 0:
+            return False
+        
+        # Perform deletion
+        try:
+            if messages_count > 0:
+                self.messages_collection.delete(where={"session_id": session_id})
+            if documents_count > 0:
+                self.documents_collection.delete(where={"session_id": session_id})
+            return True
+        except Exception as e:
+            logger.info(f"Delete failed: {e}")
+            return False
 
     def clear_session(self):
         """
