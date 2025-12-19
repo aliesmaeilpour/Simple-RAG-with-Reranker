@@ -11,7 +11,6 @@ from models import (
     ErrorResponse
 )
 from rag_engine import RAGEngine
-# from chromadb_chat_history import ChromaChatHistory
 
 
 router = APIRouter()
@@ -198,23 +197,3 @@ async def delete_session(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
-
-
-# @router.post(
-#     "/sessions/{session_id}/clear",
-#     status_code=200,
-#     summary="Clear session history",
-#     description="Clear chat history while keeping the session.",
-#     tags=["Sessions"]
-# )
-# async def clear_session_history(
-#     session_id: str = Path(..., description="Session ID"),
-#     chatbot: LocationChatbot = Depends(get_chatbot)
-# ):
-#     """Clear all messages from a session without deleting it."""
-#     try:
-#         chatbot.clear_session_history(session_id)
-#         return {"message": f"Session {session_id} history cleared", "session_id": session_id}
-        
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Failed to clear session: {str(e)}")

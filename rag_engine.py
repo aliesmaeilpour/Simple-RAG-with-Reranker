@@ -5,9 +5,9 @@ from langchain_core.documents import Document
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from openai import OpenAI
 from config import settings
-from vector_store import VectorStore
 from chat_history import ChromaChatHistory
 from datetime import datetime
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class RAGEngine:
             self.tokenizer = AutoTokenizer.from_pretrained(settings.qwen_model_name)
             self.model = AutoModelForCausalLM.from_pretrained(settings.qwen_model_name, device_map=settings.qwen_device)
         self.system_prompt = self._build_system_prompt()
-        print("LocationChatbot initialized successfully")
+        print("RAGEngine initialized successfully")
     
     def _build_system_prompt(self) -> str:
         """Build the system prompt for the chatbot."""
@@ -52,6 +52,27 @@ Current date: {current_date}
         return self.system_prompt.format(
             current_date=datetime.now().strftime("%Y-%m-%d")
         )
+    
+    def _save_conversation_async(
+        self, 
+        user_message: str, 
+        assistant_message: str, 
+        session_id: str
+    ):
+        """Save conversation to database in background thread."""
+        def _save():
+            try:
+                self.history_manager.add_conversation(
+                    user_message=user_message,
+                    assistant_message=assistant_message,
+                    session_id=session_id
+                )
+                logger.debug(f"Conversation saved for session {session_id}")
+            except Exception as e:
+                logger.error(f"Failed to save conversation: {e}")
+        
+        thread = threading.Thread(target=_save, daemon=True)
+        thread.start()
     
     def _build_messages(
         self,
@@ -157,7 +178,8 @@ Please provide a helpful response based on the user's query and the context resu
             assistant_response = response.choices[0].message.content
             input_tokens = response.usage.prompt_tokens
             output_tokens = response.usage.completion_tokens
-            self.history_manager.add_conversation(
+            reasoning_tokens = response.completion_tokens_details.reasoning_tokens
+            self._save_conversation_async(
                 user_message=query,
                 assistant_message=assistant_response,
                 session_id=session_id
@@ -166,8 +188,9 @@ Please provide a helpful response based on the user's query and the context resu
             return {
                 "response": assistant_response,
                 "metadata": metadata,
-                "input_token": input_tokens,
-                "output_token": output_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "reasoning tokens": reasoning_tokens,
                 "processing_time": elapsed
             }
 
@@ -179,7 +202,7 @@ Please provide a helpful response based on the user's query and the context resu
                 max_new_tokens=settings.qwen_max_tokens,
                 temperature=settings.qwen_temperature,
             )
-            self.history_manager.add_conversation(
+            self._save_conversation_async(
                 user_message=query,
                 assistant_message=assistant_response,
                 session_id=session_id

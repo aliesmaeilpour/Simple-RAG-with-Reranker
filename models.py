@@ -95,13 +95,16 @@ class ChunkMetadata(BaseModel):
 
 class QueryResponse(BaseModel):
     """Response model for queries"""
-    success: bool = Field(..., description="Query success status")
-    question: str = Field(..., description="Original question")
-    answer: str = Field(..., description="Generated answer")
-    sources: List[ChunkMetadata] = Field(..., description="Source chunks used")
-    llm_provider: LLMProvider = Field(..., description="LLM provider used")
-    processing_time: float = Field(..., description="Query processing time in seconds")
-    metadata: Dict[str, Any] = Field(default={}, description="Additional metadata")
+    success: bool
+    question: str
+    answer: str
+    sources: List[ChunkMetadata]
+    llm_provider: LLMProvider
+    processing_time: float
+    metadata: Dict[str, Any] = {}
+    input_tokens: int
+    output_tokens: int
+    reasoning_tokens: int
 
 
 class HealthCheckResponse(BaseModel):
