@@ -178,7 +178,7 @@ Please provide a helpful response based on the user's query and the context resu
             assistant_response = response.choices[0].message.content
             input_tokens = response.usage.prompt_tokens
             output_tokens = response.usage.completion_tokens
-            reasoning_tokens = response.completion_tokens_details.reasoning_tokens
+            reasoning_tokens = response.usage.completion_tokens_details.reasoning_tokens
             self._save_conversation_async(
                 user_message=query,
                 assistant_message=assistant_response,
