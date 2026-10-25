@@ -12,7 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.routes import router, set_chatbot
+from app.api.router import router
+from app.api.deps import set_chatbot
 from app.core.config import settings
 from app.core.middleware import RateLimitMiddleware, RequestIDMiddleware
 from app.service.rag_engine import RAGEngine

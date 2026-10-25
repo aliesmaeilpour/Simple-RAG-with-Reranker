@@ -290,7 +290,7 @@ def test_faithfulness_is_opt_in_on_all_request_schemas(request_type):
     ("/chat/stream", {"question": "sales", "session_id": "s1"}),
 ])
 def test_api_supports_faithfulness_and_separate_judge_usage(path, body):
-    from app.api.routes import get_chatbot, router
+    from app.api.router import get_chatbot, router
 
     engine = make_engine()
     if path.endswith("/stream"):

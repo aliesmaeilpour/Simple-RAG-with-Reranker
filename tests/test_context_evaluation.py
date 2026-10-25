@@ -232,7 +232,7 @@ def test_stream_terminal_event_contains_evaluation():
     ("/query", {"message": "sales", "session_id": "s1"}),
 ])
 def test_api_exposes_evaluation(path, body):
-    from app.api.routes import get_chatbot, router
+    from app.api.router import get_chatbot, router
 
     app = FastAPI()
     app.include_router(router)
@@ -250,7 +250,7 @@ def test_api_exposes_evaluation(path, body):
 
 
 def test_stream_api_forwards_evaluation_options_and_serializes_terminal_result():
-    from app.api.routes import get_chatbot, router
+    from app.api.router import get_chatbot, router
 
     engine = make_engine([context("a", "sales")])
     engine.language_model.complete.return_value = {"response": json.dumps({
