@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+langchain-core
+langchain-text-splitters
+sentence-transformers
+pdfplumber
+pymupdf
+python-docx
+openpyxl
+transformers
+openai
+numpy
+pydantic-settings
+python-multipart
+jdatetime
+qdrant-client>=1.15,<1.16

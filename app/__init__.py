@@ -1,0 +1,1 @@
+"""Persian RAG application."""
