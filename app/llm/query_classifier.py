@@ -96,7 +96,7 @@ Output:
   "prefer_text": false
 }"""
 
-    def __init__(self, model: str = "gpt-4.1-nano") -> None:
+    def __init__(self, model: str = "gpt-4o-mini") -> None:
         self.client = LanguageModel()
         self.model = model
 
@@ -223,16 +223,20 @@ Output:
         if context_lines:
             user_content = "\n".join(context_lines) + "\n\nQuery: " + raw_query
 
+        print("user_content: ", user_content)
+
         try:
+            await self.client.initialize()
             response = await self.client.complete(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self._SYSTEM},
                     {"role": "user", "content": user_content},
                 ],
-                temperature=0
+                temperature=0,
             )
-            raw = json.loads(response.choices[0].message.content)
+            print("LLM classifier response: ", response)
+            raw = json.loads(response["response"])
         except Exception as exc:
             logger.warning("QueryClassifier LLM call failed: %s", exc)
             return ParsedQuery(
@@ -242,7 +246,6 @@ Output:
             )
 
         filters: dict[str, Any] = {}
-        raw = raw.get("response", {})
         llm_filters = raw.get("filters", {})
 
         if "page_number" in llm_filters:
@@ -253,7 +256,6 @@ Output:
 
         if "sheet_name" in llm_filters and llm_filters["sheet_name"]:
             sheet = llm_filters["sheet_name"]
-            # Validate / normalize against known sheets
             if available_sheets:
                 sheet_lower = sheet.lower()
                 matched = next(
@@ -267,7 +269,6 @@ Output:
                 filters["sheet_name"] = sheet
 
         if "section_hint" in llm_filters and llm_filters["section_hint"]:
-            # Not a hard DB filter — callers use this for hierarchy_path ILIKE
             filters["section_hint"] = llm_filters["section_hint"]
 
         if llm_filters.get("content_type") in ("table", "text"):

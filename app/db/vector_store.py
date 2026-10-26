@@ -275,7 +275,7 @@ class QdrantVectorStore:
             sparse = await asyncio.to_thread(self.bm25.encode_query, query)
         else:
             sparse = None
-        print('sparse: ', sparse)
+        # print('sparse: ', sparse)
         if sparse is None or not sparse.indices:
             return await self.search(
                 collection, vector, filters, limit, score_threshold, exclude
@@ -285,8 +285,8 @@ class QdrantVectorStore:
 
         query_filter = self.make_filter(filters, exclude)
         print("query_filter: ", query_filter)
-        print("query: ", query)
-        print("vector: ", vector)
+        # print("query: ", query)
+        # print("vector: ", vector)
         prefetch_limit = max(limit, settings.hybrid_prefetch_limit)
         result = await self.client.query_points(
             collection_name=collection,
@@ -311,7 +311,7 @@ class QdrantVectorStore:
             with_payload=True,
             with_vectors=False,
         )
-        print("vector_store_result: ", result)
+        print("vector_store_result: ", result.points)
         return result.points
 
     async def search(

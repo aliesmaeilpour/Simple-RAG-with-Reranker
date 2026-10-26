@@ -44,7 +44,7 @@ class RAGEngine:
     def __init__(self) -> None:
         self.history_manager = QdrantChatHistory()
         self.language_model = LanguageModel()
-        self.query_classifier = QueryClassifier(self.language_model)
+        self.query_classifier = QueryClassifier()
         self.session_locks = SessionLocks()
         self._initialized = False
         self._initialize_lock = asyncio.Lock()
